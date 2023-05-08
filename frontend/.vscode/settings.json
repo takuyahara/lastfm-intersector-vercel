@@ -1,0 +1,15 @@
+{
+  "editor.autoIndent": "advanced",
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "js/ts.implicitProjectConfig.checkJs": true,
+  "[typescriptreact]": {
+    "editor.formatOnSave": true
+  },
+  "json.schemas": [
+    {
+      "fileMatch": ["tsconfig.json"],
+      "url": "https://json.schemastore.org/tsconfig"
+    }
+  ]
+}
