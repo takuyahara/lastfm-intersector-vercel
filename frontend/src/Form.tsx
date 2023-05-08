@@ -9,8 +9,8 @@ interface FormProps {
   value?: string;
 }
 
-// const UrlEp = "https://lastfm-intersector-render.onrender.com/api/artist/";
-const UrlEp = "http://localhost:8080/api/artist/";
+const UrlEp = "https://lastfm-intersector-render.onrender.com/api/artist/";
+// const UrlEp = "http://localhost:8080/api/artist/";
 
 export default function Form(props: FormProps): JSX.Element {
   let refInput;
