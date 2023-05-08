@@ -14,7 +14,7 @@ func config(router *gin.Engine) {
 func useCors(router *gin.Engine) {
 	router.Use(cors.New(cors.Config{
 		AllowOrigins: []string{
-			"*",
+			"https://lastfm-intersector-render-zuys.onrender.com",
 		},
 	}))
 }
