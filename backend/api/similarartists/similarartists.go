@@ -1,6 +1,7 @@
 package similarartists
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -34,6 +35,27 @@ func getEpSimilar(artist string) string {
 	}, "")
 }
 
+type Response struct {
+	SimilarArtists struct {
+		Artist []ArtistRaw `json:"artist"`
+	} `json:"similarartists"`
+}
+type ArtistRaw struct {
+	Name  string `json:"name"`
+	Match string `json:"match"`
+	Url   string `json:"url"`
+}
+type Artist struct {
+	Name  string  `json:"name"`
+	Match float64 `json:"match"`
+	Url   string  `json:"url"`
+}
+type SimilarArtistsWithError struct {
+	Error          string   `json:"error"`
+	Artist         string   `json:"artist"`
+	SimilarArtists []Artist `json:"similarartists"`
+}
+
 func ArtistGET(c *gin.Context) {
 	artist := c.Param("artist")
 	epGetSimilar := getEpSimilar(artist)
@@ -51,5 +73,33 @@ func ArtistGET(c *gin.Context) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	c.JSON(http.StatusOK, string(bodyText))
+	var responseJson Response
+	if err := json.Unmarshal(bodyText, &responseJson); err != nil {
+		c.JSON(http.StatusInternalServerError, SimilarArtistsWithError{
+			Error:          err.Error(),
+			Artist:         artist,
+			SimilarArtists: []Artist{},
+		})
+	}
+	sawe := SimilarArtistsWithError{
+		Error:          "",
+		Artist:         artist,
+		SimilarArtists: []Artist{},
+	}
+	for _, a := range responseJson.SimilarArtists.Artist {
+		match, err := strconv.ParseFloat(a.Match, 64)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, SimilarArtistsWithError{
+				Error:          err.Error(),
+				Artist:         artist,
+				SimilarArtists: []Artist{},
+			})
+		}
+		sawe.SimilarArtists = append(sawe.SimilarArtists, Artist{
+			Name:  a.Name,
+			Match: match,
+			Url:   a.Url,
+		})
+	}
+	c.JSON(http.StatusOK, sawe)
 }
