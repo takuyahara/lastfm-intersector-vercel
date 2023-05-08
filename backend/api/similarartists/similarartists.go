@@ -4,14 +4,25 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 const LIMIT = 250
-const API_KEY = "b25b959554ed76058ac220b7b2e0a026"
+
+var API_KEY = ""
+
+func init() {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+	API_KEY = os.Getenv("API_KEY")
+}
 
 func getEpSimilar(artist string) string {
 	return strings.Join([]string{
