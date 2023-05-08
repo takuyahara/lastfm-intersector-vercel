@@ -7,13 +7,5 @@ import (
 )
 
 func config(router *gin.Engine) {
-	useCors(router)
-}
-
-func useCors(router *gin.Engine) {
-	router.Use(cors.New(cors.Config{
-		AllowOrigins: []string{
-			"*",
-		},
-	}))
+	// noop
 }
