@@ -1,3 +1,3 @@
 #!/bin/bash
 
-yarn global add vercel
+# npm i -g vercel
