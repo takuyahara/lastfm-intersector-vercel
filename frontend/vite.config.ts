@@ -6,7 +6,7 @@ import liveReload from "vite-plugin-live-reload";
 export default defineConfig({
   plugins: [solidPlugin(), liveReload(["**/*"])],
   server: {
-    port: 3000,
+    port: 3001,
     hmr: false,
   },
   build: {
