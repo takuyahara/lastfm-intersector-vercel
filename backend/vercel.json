@@ -1,0 +1,19 @@
+{
+    "version": 2,
+    "builds": [
+        {
+            "src": "*.go",
+            "use": "@vercel/go"
+        },
+        {
+            "src": "/similarartists/*.go",
+            "use": "@vercel/go"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/api/similarartists/(?<artist>[^/]*)",
+            "dest": "/similarartists?artist=$artist"
+        }
+    ]
+}

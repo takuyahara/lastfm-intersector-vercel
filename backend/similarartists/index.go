@@ -1,29 +1,18 @@
-package similarartists
+package handler
 
 import (
 	"encoding/json"
-	"io/ioutil"
-	"log"
+	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"strconv"
 	"strings"
-
-	"github.com/gin-gonic/gin"
-	"github.com/joho/godotenv"
 )
 
 const LIMIT = 250
 
-var API_KEY = ""
-
-func init() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
-	API_KEY = os.Getenv("API_KEY")
-}
+var API_KEY = os.Getenv("API_KEY")
 
 func getEpSimilar(artist string) string {
 	return strings.Join([]string{
@@ -56,30 +45,41 @@ type SimilarArtistsWithError struct {
 	SimilarArtists []Artist `json:"similarartists"`
 }
 
-func ArtistGET(c *gin.Context) {
-	artist := c.Param("artist")
+func getArtist(artist string) SimilarArtistsWithError {
 	epGetSimilar := getEpSimilar(artist)
 	client := &http.Client{}
 	req, err := http.NewRequest("GET", epGetSimilar, nil)
 	if err != nil {
-		log.Fatal(err)
-	}
-	resp, err := client.Do(req)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer resp.Body.Close()
-	bodyText, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
-	var responseJson Response
-	if err := json.Unmarshal(bodyText, &responseJson); err != nil {
-		c.JSON(http.StatusInternalServerError, SimilarArtistsWithError{
+		return SimilarArtistsWithError{
 			Error:          err.Error(),
 			Artist:         artist,
 			SimilarArtists: []Artist{},
-		})
+		}
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return SimilarArtistsWithError{
+			Error:          err.Error(),
+			Artist:         artist,
+			SimilarArtists: []Artist{},
+		}
+	}
+	defer resp.Body.Close()
+	bodyText, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return SimilarArtistsWithError{
+			Error:          err.Error(),
+			Artist:         artist,
+			SimilarArtists: []Artist{},
+		}
+	}
+	var responseJson Response
+	if err := json.Unmarshal(bodyText, &responseJson); err != nil {
+		return SimilarArtistsWithError{
+			Error:          err.Error(),
+			Artist:         artist,
+			SimilarArtists: []Artist{},
+		}
 	}
 	sawe := SimilarArtistsWithError{
 		Error:          "",
@@ -89,11 +89,11 @@ func ArtistGET(c *gin.Context) {
 	for _, a := range responseJson.SimilarArtists.Artist {
 		match, err := strconv.ParseFloat(a.Match, 64)
 		if err != nil {
-			c.JSON(http.StatusInternalServerError, SimilarArtistsWithError{
+			return SimilarArtistsWithError{
 				Error:          err.Error(),
 				Artist:         artist,
 				SimilarArtists: []Artist{},
-			})
+			}
 		}
 		sawe.SimilarArtists = append(sawe.SimilarArtists, Artist{
 			Name:  a.Name,
@@ -101,5 +101,13 @@ func ArtistGET(c *gin.Context) {
 			Url:   a.Url,
 		})
 	}
-	c.JSON(http.StatusOK, sawe)
+	return sawe
+}
+
+func Handler(w http.ResponseWriter, r *http.Request) {
+	artist := r.URL.Query().Get("artist")
+	similarartists := getArtist(artist)
+	bytes, _ := json.Marshal(similarartists)
+	w.Header().Set("Content-Type", "application/json")
+	fmt.Fprintf(w, string(bytes))
 }
